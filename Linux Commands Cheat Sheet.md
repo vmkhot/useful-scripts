@@ -10,7 +10,7 @@ You will come across MANY different file extensions in bioinformatics. File exte
 
 | Ext.            | Name                          | Meaning                                                      |
 | --------------- | ----------------------------- | ------------------------------------------------------------ |
-| .tar.gz         | zipped tar ball               | Very large data or program inside.                           |
+| .tar.gz         | zipped tar archive            | Very large data or program inside.                           |
 | .fa<br />.fasta | fasta file (generic)          | contains sequence data with a sequence header like: ">seq1". at this stage, a fasta is assembled reads |
 | .fna            | fasta file (nucleotide)       | contains nucleotide data (ATGC...)                           |
 | .faa            | fasta file (amino acid)       | contains peptide or protein sequences (MSQL...)              |
@@ -20,7 +20,7 @@ You will come across MANY different file extensions in bioinformatics. File exte
 | .gbk            | genbank file                  | has gene/protein specific annotation information. NCBI annotation files |
 | .gff            | general feature format        | has gene/protein specific annotation information per contig/chromosome, tab separated |
 | sam, bam        | mapping files                 | sam is human-readable mapping file<br />bam is the indexed binary<br />Use [samtools](http://www.htslib.org/doc/samtools.html) or bamtools to deal with these |
-| .sh             | shell script                  | has commands to run consequectively using bash               |
+| .sh             | shell script                  | has commands to run consecutively using bash                 |
 
 #### Download from internet and unzip Files
 
@@ -186,7 +186,7 @@ You might be wondering why one would ever do this. Well, imagine a sequence file
 
 **Grep, awk** and **sed** are the champions of file editing from the command line. They each have lots of options - I've only included here what I've use commonly. 
 
-**Regular Expressions** ([regex](https://tldp.org/LDP/abs/html/x17129.html)) are a way to describe a pattern. Worth learning for quick changes. They are compatible across multiple scripting languages like python and perl as well. Google for more info and how to use these.
+**Regular Expressions** ([regex](https://tldp.org/LDP/abs/html/x17129.html)) are a way to describe a pattern. Worth learning for quick changes. They are compatible across multiple scripting languages like python and perl as well. Google for more info and how to use these. You can test out your regex patterns here: [Regex101](https://regex101.com/)
 
 #### Grep - Pattern find
 
@@ -378,7 +378,7 @@ $ sort -u file.txt
 Sort the top blast hits by bitscore (12th column in outfmt 6).
 
 ```sh
-#this reverse sorts by 12th column of a blast output file and prints top 10 rows 
+#this reverse sorts by 12th column (bitscore) of a blast output file and prints top 10 rows 
 $ sort -rk 12n blastoutput.tsv | head 10
 ```
 
@@ -419,7 +419,7 @@ $ sort file.txt | uniq -u
 [Cut](https://www.geeksforgeeks.org/cut-command-linux-examples/) is useful for extracting data from tab-separated files. Cut requires options to be useful
 
 ```sh
-$ cut file.tsv	#this is produce an error
+$ cut file.tsv	#this produces an error
 
 # extract by bytes
 $ cut -b 1,10	#1 - 10 bytes
@@ -466,16 +466,16 @@ for fn in ./*.fa					# iterate through all .fa files in current directory
 do							
     echo $fn							# print fasta file name
     newname=$(basename $fn .fa)			# assign name w/o the extension to variable "newname" 
-	echo $newname						# print fasta file name
-	sample="${newname:1:-6}" 			#"sample" = particular characters of "newname" 
+    echo $newname						# print fasta file name
+    sample="${newname:1:-6}" 			#"sample" = particular characters of "newname" 
 										#(-6 is from right to left)
-	echo $sample
+    echo $sample
 done
 
 output:
 Sample1_bin11.fa	# $fn
 Sample1_bin11		# $newname
-Sample1				# $sample
+Sample1			# $sample
 ```
 
 Then run by doing:
