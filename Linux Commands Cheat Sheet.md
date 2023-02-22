@@ -127,6 +127,13 @@ mv ./current/file1 ./destination/file1
 
 **Renaming** a file is the same "mv" command, but the current and destination locations are the same directory.
 
+E.g. To rename all ".fa" files to ".fna"
+
+```sh
+for f in *.fa; do mv -- "$f" "${f%.fa}.fna"; done
+```
+
+
 ##### Remove
 
 !!**<u>STOP</u>**!! Make sure you are absolutely sure about what you are deleting. Linux does not have a "recycle bin". Deleted files and directories are gone FOREVER. 
@@ -213,6 +220,9 @@ $ grep -n #print line numbers
 
 $ grep -w #exact match (not regex)
 
+#match multiple patterns
+$ grep -A1 "VC37\|VC38\|VC7\|VC36" genes.faa > top4_genes.faa
+
 #My favourite
 $ grep -Ff patterns.txt file.txt #this grabs the patterns from a file with a list of patterns and searches for them inside file.txt
 
@@ -263,6 +273,8 @@ $ awk -F'\t' '{if($3 >= 95 && $11 <= 1E-5) print $0}' blast.tsv > filteredblast.
 # search strings from filter.txt against column 2 in data.tsv
 $ awk -F "\t" 'FNR==NR {hash[$0]; next} !($2 in hash)' filter.txt data.tsv > output.tsv
 
+awk 'BEGIN{FS=OFS="\t"} $1~/VC/ {gsub(/_/, "\|", $1)} 1' temp.out
+
 # filter by column 11 > 0.8, print file name to the first column and cat all files
 $ for f in *deduped.tblout; do file=$(basename $f .tblout);awk -v a=${file} '{if ($11 >= 0.8) print a,'\t',$0;}' < ${file}.tblout >> cat_file.tblout ; done
 ```
@@ -302,13 +314,16 @@ sed 's/find/replace/g' input.txt > output.txt
 sed -i 's/find/replace/g' input.txt
 
 #replace entire first line with xx
-sed -i '1s/.*/xx/'
+sed -i '1s/.*/1620/'
 
 #replace last "_" (underscore) in each line with xx
 sed 's/\(.*\)_/\1xx/'
 
 #print lines between two patterns
 sed -n '/>pattern1/,/>pattern2/p' file.fasta
+
+# sed if line starts with ">VC"
+sed '/^>VC/s/search_string/replace_string/'
 
 ```
 
