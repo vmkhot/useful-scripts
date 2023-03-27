@@ -133,6 +133,11 @@ E.g. To rename all ".fa" files to ".fna"
 for f in *.fa; do mv -- "$f" "${f%.fa}.fna"; done
 ```
 
+To split large directory into subdirectories. Change `300` to wanted number
+
+```bash
+i=0; for f in *; do d=dir_$(printf %03d $((i/300+1))); mkdir -p $d; mv "$f" $d; let i++; done
+```
 
 ##### Remove
 
