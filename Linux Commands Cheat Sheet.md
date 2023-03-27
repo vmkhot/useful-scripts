@@ -107,6 +107,8 @@ $ find -regex ".*\.fa" || ".fasta"
 # find FILES with pattern* in random directory, print file name and \n line break
 $ find ./random -name "pattern*.fa" -type f printf "%p\n" 
 
+# find and copy all files to new location
+find ./ -iname "slurm*.sh" -exec cp {} ./scripts/ \;
 ```
 
 #### File movement
