@@ -332,6 +332,16 @@ sed -n '/>pattern1/,/>pattern2/p' file.fasta
 # sed if line starts with ">VC"
 sed '/^>VC/s/search_string/replace_string/'
 
+# delete line matching pattern (prints the remainder)
+sed '/pattern/d'
+
+# delete line matching pattern (exact match with \b) + the line after
+# e.g. singleline fasta - it will match the header and delete both header and sequence
+sed '/k141_57368\b/,+1 d' file.fa
+#OR
+sed -e '/k141_57368\b/{N;d;}' file.fa
+#multiple
+sed '/k141_57368\b\|k141_88513\b/,+1 d' file.fa
 ```
 
 ### Other File Utilities
