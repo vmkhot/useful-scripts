@@ -335,6 +335,9 @@ sed '/^>VC/s/search_string/replace_string/'
 # delete line matching pattern (prints the remainder)
 sed '/pattern/d'
 
+# delete from matching pattern(#) to end of line, incl pattern (e.g. shorten fasta headers)
+sed -i 's/#.*$//' file.fna
+
 # delete line matching pattern (exact match with \b) + the line after
 # e.g. singleline fasta - it will match the header and delete both header and sequence
 sed '/k141_57368\b/,+1 d' file.fa
