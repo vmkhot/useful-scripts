@@ -172,14 +172,16 @@ iphop predict --fa_file ../viral_contigs_renamed.singleline.fna --db_dir /work/e
 
 ### Viral Taxonomy
 
-An in-house script was used to predict viral taxonomy against the latest viral reference sequence database (v?). Script can be found [here]()
+An in-house script was used to predict viral taxonomy against the viral reference sequence database - Refseq Release 203 (Ref).
 
 ```bash
 blastp -db cat_all_viruses2blast.faa -query cat_all_viruses2blast.faa -out VCproteins_refseq_selfblastp_hsp1.out -outfmt 6 -num_threads 20 -max_hsps 1
 ```
 Blastp results were filtered by e-value <= 1E-5 and percent identity >= 40%
 
-The resulting network was visualized in Cytoscape
+Script used to calculate Dice coefficients and create a pairwise alignment of viruses: [BSR_tree.py](https://github.com/vmkhot/labjournal/blob/main/Scripts/Python/BSR_tree.py)
+
+The resulting network was visualized in Cytoscape (ref)
 
 ### Viral Sequence Annotation
 
@@ -233,5 +235,14 @@ seal.sh in=reads.fq nucl_seq.fa stats=sealstats.txt rpkm=sealrpkm.txt ambig=all
 
 ### Differential Expression Analysis
 
-DE analysis was performed using the *DESeq2* pipeline in R. The generic pipeline used to assess quality of raw counts from samples is [here](vmkhot/Metagenome-workflows/Metatranscriptomics/R-scripts/deseq2_script_sample_QC.R) and the time-course script [here](vmkhot/Metagenome-workflows/Metatranscriptomics/R-scripts/deseq2_time_course_script_cyano.R)
+DE analysis was performed using the *DESeq2* (ref) pipeline in R. 
 
+The generic pipeline used to assess quality of raw counts from samples: [deseq2_script_sample_QC](https://github.com/vmkhot/Metatranscriptomics/blob/main/R-scripts/deseq2_script_sample_QC.R) 
+
+R script for using *DESeq2* for time-course experiments for the *Ca. S. alkaliphilum*: [deseq2_time_course_script_cyano](https://github.com/vmkhot/Metatranscriptomics/blob/main/R-scripts/deseq2_time_course_script_cyano.R)
+
+### Soft Clustering of Gene Expression Profiles
+
+Genes were clustered by their expression profiles over time using the *MFuzz* (ref) package in R
+
+R script for using *MFuzz* for time-course experiments for the *Ca. S. alkaliphilum*: [mfuzz_clustering](https://github.com/vmkhot/Metatranscriptomics/blob/main/R-scripts/mfuzz_clustering.R)
