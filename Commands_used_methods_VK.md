@@ -6,13 +6,13 @@ Commands, bioinformatic programs and their parameters used for metagenomic aand 
 
 ### Quality Control
 
-**FastQC**
+#### [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
 
 ```bash
 fastqc *_R1_001.fastq.gz *_R2_001.fastq.gz -o ./
 ```
 
-**bbmap and samtools**
+#### [bbmap](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/) and [samtools](https://www.htslib.org/)
 
 ```bash
 #Step 1: Trim off last bases
@@ -30,7 +30,7 @@ bbduk.sh in=$sample_R1_001.dec.fastq in2=$sample_R2_001.dec.fastq out=$sample_R1
 
 ### Assembly
 
-**MegaHit**
+#### [MegaHit](https://github.com/voutcn/megahit)
 
 ```bash
 #coassembly
@@ -41,13 +41,13 @@ megahit -1 sample_R1_001.qc.fastq -2 sample_R2_001.qc.fastq -o output/dir/S52
 
 ```
 
-**MetaViralSpades**
+#### [MetaViralSpades](https://github.com/ablab/spades)
 
 ```bash
 spades.py --metaviral -t 30 --pe1-1 CAT_S64_R1_001.qc.fastq --pe1-2 CAT_S64_R2_001.qc.fastq --pe2-1 CAT_S65_R1_001.qc.fastq --pe2-2 CAT_S65_R2_001.qc.fastq --pe3-1 CAT_S66_R1_001.qc.fastq --pe3-2 CAT_S66_R2_001.qc.fastq --pe4-1 CAT_S70_R1_001.qc.fastq --pe4-2 CAT_S70_R2_001.qc.fastq -o ./S64_65_66_70_viralSpades/
 ```
 
-**MetaQUAST**
+#### [MetaQUAST](https://quast.sourceforge.net/metaquast.html)
 
 ```bash
 metaquast.py -m 500 -t 20 --fast -o metaquast -l viral contigs.fasta
@@ -55,7 +55,7 @@ metaquast.py -m 500 -t 20 --fast -o metaquast -l viral contigs.fasta
 
 ### Mapping
 
-**bbmap & samtools & metabat2**
+#### [bbmap](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/) & [samtools](https://www.htslib.org/) & [metabat2](https://bitbucket.org/berkeleylab/metabat/src/master/)
 
 ```bash
 bbmap.sh ref= in=sample_R1_001.qc.fastq in2=sample_R2_001.qc.fastq out=./sample_bbmap.sam covstats=./sample_bbmap_covstats.txt scafstats=./sample_bbmap_scafstats.txt threads=20 minid=0.95 ambiguous=toss
@@ -69,7 +69,7 @@ jgi_summarize_bam_contig_depths --outputDepth ./depth.txt ./*.bam
 
 ### Binning
 
-Binning from coassembly into Metagenome-Assembled-Genomes (MAGs)
+Binning from coassembly into Metagenome-Assembled-Genomes (MAGs) using [metabat2](https://bitbucket.org/berkeleylab/metabat/src/master/)
 
 ```bash
 metabat2 -i final.contigs.fa.gz -o /Bin -a depth.txt --unbinned -t 30 -v
@@ -77,7 +77,7 @@ metabat2 -i final.contigs.fa.gz -o /Bin -a depth.txt --unbinned -t 30 -v
 
 Individual binning of Ca. Sodalinema alkaliphilum MAGs
 
-**MetaQUAST**
+#### [MetaQUAST](https://quast.sourceforge.net/metaquast.html)
 
 ```bash
 metaquast.py -m 500 -t 20 -o metaquast_full -l day0,day2,day4,day6,day8,day9 day0/final.contigs.fa day2/final.contigs.fa day4/final.contigs.fa day6/final.contigs.fa day8/final.contigs.fa day9/final.contigs.fa -r phormidium_ref.fasta
@@ -85,22 +85,21 @@ metaquast.py -m 500 -t 20 -o metaquast_full -l day0,day2,day4,day6,day8,day9 day
 
 ### MAG Quality
 
-**CheckM2**
+#### [CheckM2](https://github.com/chklovski/CheckM2)
 
 ```bash
 checkm2 predict -t 30 -x fa --input ./allBins/bins/ --output-directory ./Checkm2
 ```
 
-
 ### Taxonomy
 
-**Phyloflash**
+#### [Phyloflash](https://hrgv.github.io/phyloFlash/)
 
 ```bash
 phyloFlash.pl -dbhome silva/138.1 -lib samples  -read1 sample_R1_001.qc.fastq -read2 sample_R2_001.qc.fastq -readlength 150
 ```
 
-**GTDB-tk**
+#### [GTDB-Tk](https://github.com/Ecogenomics/GTDBTk)
 
 Genome Taxonomy Database release 202 was used to classify MAG taxonomy
 
@@ -110,7 +109,7 @@ gtdbtk classify_wf -x fa --cpus 20 --genome_dir ./allBins/ --out_dir ./ --pplace
 
 ### MAG Annotation
 
-**MetaERG2**
+#### [MetaErg2](https://github.com/kinestetika/MetaErg)
 
 ```bash
 apptainer exec -B /work/ebg_lab/ ~/metaerg_latest.sif metaerg --database_dir /referenceDatabases/metaerg_database/ --path_to_signalp /referenceDatabases/metaerg_database/ --path_to_tmhmm /referenceDatabases/metaerg_database/ --contig_file ./allBins/ --rename_genomes --rename_contigs --cpus 40 --file_extension .fna
@@ -118,7 +117,7 @@ apptainer exec -B /work/ebg_lab/ ~/metaerg_latest.sif metaerg --database_dir /re
 
 ### MAG and Contig Coverage and Relative Abundance
 
-**CoverM**
+#### [CoverM](https://github.com/wwood/CoverM)
 
 ```bash
 coverm genome -v -x fa -t 20 --methods trimmed_mean -1 *_R1_001.qc.fastq -2 *_R2_001.qc.fastq --genome-fasta-directory bins --bam-file-cache-directory ./coverm_bam -o out_genome_coverage.tsv
@@ -129,7 +128,7 @@ coverm genome -v -x fa -t 20 --methods relative_abundance --bam-files *.bam -s '
 
 ### CRISPR Identification
 
-**minced**
+#### [MinCED](https://github.com/ctSkennerton/minced)
 
 ```bash
 minced -spacers final.contigs.fa assembly.crisprs assembly.gff
@@ -137,7 +136,7 @@ minced -spacers final.contigs.fa assembly.crisprs assembly.gff
 
 ### Viral Sequence Identification
 
-**Virsorter2**
+#### [VirSorter2](https://github.com/jiarong/VirSorter2)
 
 ```bash
 virsorter config --set HMMSEARCH_THREADS=30
@@ -147,7 +146,7 @@ virsorter run --keep-original-seq --min-length 1000 --min-score 0.5 -w ./pass1 -
 
 ### Viral Host Predictions
 
-**BLASTn**
+#### [BLAST](https://blast.ncbi.nlm.nih.gov/doc/blast-help/downloadblastdata.html)
 
 ```bash
 blastn -db final.contigs.fa  -query viral_genomes.fna -out blastn.out
@@ -162,9 +161,9 @@ CRISPR-Blastn results were filtered by length >= 25 bp, percent identity >= 95% 
 
 **tetraucleotide frequency profiles**
 
-Using an in-house script
+Using an in-house script developed by [Marc Strous](https://github.com/kinestetika) 
 
-**iphop**
+#### [iPHoP](https://bitbucket.org/srouxjgi/iphop/src/main/iphop/)
 
 ```bash
 iphop predict --fa_file ../viral_contigs_renamed.singleline.fna --db_dir /work/ebg_lab/referenceDatabases/iphop/db/ --out_dir iphop_output/
@@ -172,7 +171,7 @@ iphop predict --fa_file ../viral_contigs_renamed.singleline.fna --db_dir /work/e
 
 ### Viral Taxonomy
 
-An in-house script was used to predict viral taxonomy against the viral reference sequence database - Refseq Release 203 (Ref).
+An [in-house script](https://github.com/vmkhot/labjournal/blob/main/Scripts/Python/BSR_tree.py) was used to predict viral taxonomy against the viral reference sequence database - Refseq Release 203.
 
 ```bash
 blastp -db cat_all_viruses2blast.faa -query cat_all_viruses2blast.faa -out VCproteins_refseq_selfblastp_hsp1.out -outfmt 6 -num_threads 20 -max_hsps 1
@@ -185,7 +184,7 @@ The resulting network was visualized in Cytoscape (ref)
 
 ### Viral Sequence Annotation
 
-**VirSorter2 + DRAM-V**
+#### [VirSorter2](https://github.com/jiarong/VirSorter2) & [DRAM-V](https://github.com/WrightonLabCSU/DRAM)
 
 ```bash
 virsorter run --prep-for-dramv --keep-original-seq --min-length 1000 --min-score 0.5 -w ./pass1 -i viral_genomes.fasta --include-groups dsDNAphage,ssDNA -j 50 all
@@ -198,13 +197,15 @@ DRAM-v.py annotate -i final-viral-combined-for-dramv.fa -v viral-affi-contigs-fo
 
 ### Quality Control
 
+#### [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
+
 ```bash
 fastqc -o ./ -t 30 ../raw_fastq/*.fastq.gz
 
 multiqc -o ./ -n rawReads ./
 ```
 
-Last base and quality trimming using bbduk
+Last base and quality trimming using [bbduk](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbduk-guide/)
 
 ```bash
 #trim off last base (round to 50bp)
@@ -214,7 +215,7 @@ bbduk.sh in=R1_001.fastq.gz in2=R2_001.fastq.gz out=R1_001.lastbase_rm.fastq.gz 
 bbduk.sh in=R1_001.lastbase_rm.fastq.gz in2=R2_001.lastbase_rm.fastq.gz  out=R1_001.qc.fastq.gz out2=R2_001.qc.fastq.gz qtrim=rl trimq=15 minlength=10
 ```
 
-**Sorting rRNA using SortMeRNA**
+#### Sorting rRNA using [SortMeRNA](https://github.com/sortmerna/sortmerna)
 
 ```bash
 sortmerna --ref referenceDatabases/sortmerna_db/smr_v4.3_default_db.fasta \
@@ -227,7 +228,7 @@ sortmerna --ref referenceDatabases/sortmerna_db/smr_v4.3_default_db.fasta \
 
 ### Mapping
 
-Mapping transcriptome reads to nucleotide gene sequences from metagenome
+Mapping transcriptome reads to nucleotide gene sequences from metagenome using ["seal.sh"](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/seal-guide/) from BBTools
 
 ```bash
 seal.sh in=reads.fq nucl_seq.fa stats=sealstats.txt rpkm=sealrpkm.txt ambig=all
@@ -235,7 +236,7 @@ seal.sh in=reads.fq nucl_seq.fa stats=sealstats.txt rpkm=sealrpkm.txt ambig=all
 
 ### Differential Expression Analysis
 
-DE analysis was performed using the *DESeq2* (ref) pipeline in R. 
+DE analysis was performed using the [*DESeq2*](https://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)  pipeline in R. 
 
 The generic pipeline used to assess quality of raw counts from samples: [deseq2_script_sample_QC](https://github.com/vmkhot/Metatranscriptomics/blob/main/R-scripts/deseq2_script_sample_QC.R) 
 
@@ -243,6 +244,6 @@ R script for using *DESeq2* for time-course experiments for the *Ca. S. alkaliph
 
 ### Soft Clustering of Gene Expression Profiles
 
-Genes were clustered by their expression profiles over time using the *MFuzz* (ref) package in R
+Genes were clustered by their expression profiles over time using the [*MFuzz*](http://mfuzz.sysbiolab.eu/) package in R
 
 R script for using *MFuzz* for time-course experiments for the *Ca. S. alkaliphilum*: [mfuzz_clustering](https://github.com/vmkhot/Metatranscriptomics/blob/main/R-scripts/mfuzz_clustering.R)
