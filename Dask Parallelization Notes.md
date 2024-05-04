@@ -4,7 +4,7 @@ Dask has [lazy evaluation](https://docs.dask.org/en/stable/user-interfaces.html#
 - This means it ONLY computes results when explicitly asked to calling the `df.compute()` function
 - Instead it creates a *'task graph'* of how it *would* do things when asked
 
-To use with slurm in sbatch mode is simplest. Interactive mode (salloc + srun) is trickier because you are only allocated a single node and I did not have success with this.
+To use with slurm in sbatch mode is simplest. Interactive mode (salloc + srun) is trickier because you are only allocated a single node
 
 To install the libraries:
 
@@ -26,20 +26,22 @@ conda install dask-jobqueue -c conda-forge
 [reference blog post](https://medium.com/analytics-vidhya/how-to-efficiently-parallelize-dask-dataframe-computation-on-a-single-machine-1f10b5b02177#ad77) has nice explanation on threads, processes and how dask utilizes them
 
  Node: is a computer
- Each Node =  multiple CPUs
- Each CPU = mutiple processors (cores)
- Each Core = multiple threads (only conceptual, not physical)
- Processes = independent programs using threads to parallelize
+ - Each Node =  multiple CPUs
+ - Each CPU = mutiple processors (cores)
+ - Each Core = multiple threads (only conceptual, not physical)
+ - Processes = independent programs using threads to parallelize
 
 **Python cannot use mulitple threads for a single task, therefore Dask relies on processes instead.** 
+
 n_partitions (Dask) >= n_processes (machine) = **ntasks** in slurm
 
 #### Trials
 
-Initially I requested 20 cpus across 5 nodes and 200 GB in total. - that's 100 processes? 
-I assigned 
-Each worker gets 10 GB
+Initially I requested 20 cpus across 5 nodes and 200 GB in total. - that's 100 processes?  
+Each worker gets 10 GB  
+
 This is too many - more success with less workers (<20) because each worker gets more memory
+
 `--nodes=5 --ntasks=1 --cpus-per-task=15 --mem=200G` 
 - 12.5 GB mem per worker
 - 15 min completion
@@ -91,8 +93,8 @@ mpirun --oversubscribe -np 15 python3 filter_diamond_get_clusters.py
 ## How to calculate n workers, memory per worker and chunk size 
 
 Suppose I have a file size 20 GB. 
-Read in partition size = 100 MB
-therefore, n_partitions (chunks) = 200 
+Read in partition size = 100 MB  
+therefore, n_partitions (chunks) = 200  
 
 Here, each partition is brought into RAM, computed and sent back to disk. If I have 4 cores, and total RAM > 4* 100MB, then it will be parallelized.
 
@@ -101,6 +103,7 @@ Typically you want workers to do more than just 1 task so workers could be 20-40
 
 memory per worker **has to be** >= 100 MB, let's say 500 MB - 1 GB to not run into OOM errors
 20 * 0.5 GB
+
 Total memory allocation from slurm required = 10 - 20 GB
 
 [Avoid large partitions](https://docs.dask.org/en/latest/best-practices.html#avoid-very-large-partitions)
@@ -174,6 +177,7 @@ from dask_mpi import initialize
 ```
 
 Initialize the client to work with a cluster - tbh I don't know yet what this does but is important for dask-mpi
+
 ```
 initialize()
 
@@ -181,7 +185,9 @@ client = Client() # Connect this local process to remote workers
 ```
 
 INITIAL READ INS
+
 2 dataframes: a huge one (17GB) + a list of sequence IDs (370K) we want to select from the huge DF
+
 ```
 # INITIAL READ INS
 
@@ -222,7 +228,9 @@ print("xxxx 2...uniq_mgyp_id read")
 ```
 
 Merging the dataframes
+
 `# merged_df = uniq_mgyp_id.merge(clusters_df, how = "left", left_on='sseqid', right_on='representative')`
+
 merging large dataframes is too expensive. A better method is to set_index on the merging columns and use a join on a left index instead
 
 ```
@@ -261,6 +269,7 @@ print("xxxx 4... merged_df repartition to 10 done")
 ```
 
 write out this intermediate result to parquet
+
 this is by-far the most time intensive step
 
 ```
@@ -270,6 +279,7 @@ merged_df.to_parquet('uniq_cluster_seqs_2.parquet')
 **CONTINUE OPERATIONS ON A SMALLER DATAFRAME**
 
 Could delete the merged_df now and read in pandas dataframe here since the data is now pretty small but I didn't...
+ 
 `# merged_df = pd.read_parquet('uniq_cluster_seqs.parquet')`
 
 ```
@@ -302,6 +312,3 @@ print("xxxx 6... merged_df repartitioned to 1")
 merged_df.to_csv('uniq_cluster_seqs_2.tsv', sep='\t', index=False)
 
 ```
-
-
-
