@@ -1,14 +1,20 @@
+# Dask DataFrames Parallelization
+
 Dask is an python library used for parallelization of code, including pandas using [Dask dataframes](https://saturncloud.io/docs/examples/python/dask/collections/qs-dask-collections-dask-dataframe/)
+
+#dask-dataframes #dask-distributed #dask-mpi
+
+[Another tutorial on Dask dataframe from berkley](https://berkeley-scf.github.io/tutorial-dask-future/python-dask#41-dataframes-pandas)
 
 Dask has [lazy evaluation](https://docs.dask.org/en/stable/user-interfaces.html#laziness-and-computing)
 - This means it ONLY computes results when explicitly asked to calling the `df.compute()` function
 - Instead it creates a *'task graph'* of how it *would* do things when asked
 
-To use with slurm in sbatch mode is simplest. Interactive mode (salloc + srun) is trickier because you are only allocated a single node
+To use with slurm in sbatch mode is simplest using OpenMPI. Interactive mode (salloc + srun) is trickier because you are only allocated a single node
 
 To install the libraries:
 
-```
+```bash
 conda install dask
 conda install dask distributed -c conda-forge
 conda install dask-mpi -c conda-forge
@@ -31,7 +37,7 @@ conda install dask-jobqueue -c conda-forge
  - Each Core = multiple threads (only conceptual, not physical)
  - Processes = independent programs using threads to parallelize
 
-**Python cannot use mulitple threads for a single task, therefore Dask relies on processes instead.** 
+**Python cannot use mulitple threads for a single task, therefore Dask relies on processes instead.** This is because of the *Global Interpretor Lock* ( #GIL) that is only bypassed if your data is numeric. For numeric data in arrays or pandas, can use multithreading (multiple cores, 1 process). For all other data, including pure pythonic code, need to use multiprocessing (1 thread, multiple processes).
 
 n_partitions (Dask) >= n_processes (machine) = **ntasks** in slurm
 
@@ -63,7 +69,7 @@ Additionally, I have no idea whether my tasks are being spread across 5 nodes or
 
 ### Example sbatch script: 
 
-```
+```bash
 
 #!/bin/bash
 #SBATCH --job-name=dask-py           # Job name
@@ -87,6 +93,13 @@ source /vast/ri65fin/miniconda3/etc/profile.d/conda.sh
 conda activate working-env  # Activate conda environment 
 
 mpirun --oversubscribe -np 15 python3 filter_diamond_get_clusters.py
+
+'''
+# mpirun -np argument needs 2 more workers than what you want for your script
+# np rank 0 is for the scheduler
+# np rank 1 is for python client process (distribution)
+# remaining are workers for your script
+'''
 
 ```
 
@@ -130,55 +143,39 @@ Total memory allocation from slurm required = 10 - 20 GB
 
 ### Example python script dask distributed, dask MPI, dask dataframes :
 
-```
+```python
 #! usr/bin/python3
 
 '''
-
 For these large dataframes:
-
 0.5. I used "sort -u" on the command line to get just the sequence IDs of the sseqid,
-
 sort them and deduplicate, instead of reading in full blast output
-
 1. I used the dask library (which parallelizes pandas) to read in my tsv files dd.read_csv instead of pd.read_csv
-
 2. set_index to the columns I wanted to merge on and used df.join() instead of df.merge()
-
 a. can also use df.loc and df.to_dict() + df.map
-
 3. df.persist() intermediate staging of dataframes instead of df.compute() used to locally retrieve data
-
 4. df.persist() stores dataframes into memory so delete dataframes from memory after their use
-
 5. repartition only to a smaller number, not '1'
-
 6. parquet, parquet, parquet... 'to_parquet' is where the computation is happening - multiple parititons are useful
-
 '''
 
 ```
 
-```
+```python
 # IMPORT LIBRARIES
 
 import pandas as pd
-
 from pandas import DataFrame
-
 import dask.dataframe as dd
-
 from dask.distributed import Client
-
 #from dask_jobqueue import SLURMCluster
-
 from dask_mpi import initialize
 
 ```
 
 Initialize the client to work with a cluster - tbh I don't know yet what this does but is important for dask-mpi
 
-```
+```python
 initialize()
 
 client = Client() # Connect this local process to remote workers
@@ -188,39 +185,31 @@ INITIAL READ INS
 
 2 dataframes: a huge one (17GB) + a list of sequence IDs (370K) we want to select from the huge DF
 
-```
+```python
 # INITIAL READ INS
 
 # diamond_df = dd.read_csv("./MGYP_v_pharokka_blastp.tsv", sep="\t", header=None,blocksize = '64MB',
 
 # names=['qseqid', 'sseqid','pid','length','mismatch','gapopen','qstart','qend','sstart','send','evalue','bitscore'])
 
-  
-
 clusters_df = dd.read_csv("/home/ri65fin/MCP_struct/mgnify_databases/mgy_cluster_seqs.tsv", sep="\t", header=None, blocksize = '100 MB',
 
 names=['representative','cluster_seq']).set_index('representative')
-
 print(type(clusters_df))
-
 #print(clusters_df.head(n=10), len(clusters_df))
 
 clusters_df = client.persist(clusters_df)
 
 print("xxxx 1...clusters_df read")
 
-
 uniq_mgyp_id = dd.read_csv("./mgyp_CR_uniq.list", sep="\t", header=None, names=['CR']).set_index('CR')
 
 print(type(uniq_mgyp_id))
   
-
 # uniq_mgyp_id = diamond_df[['sseqid']].sort_values(by='sseqid', inplace=True).drop_duplicates()
 
 print(uniq_mgyp_id.head(n=10), len(uniq_mgyp_id))
-
 uniq_mgyp_id = uniq_mgyp_id.repartition(npartitions=1)
-
 uniq_mgyp_id = client.persist(uniq_mgyp_id)
 
 print("xxxx 2...uniq_mgyp_id read")
@@ -233,14 +222,13 @@ Merging the dataframes
 
 merging large dataframes is too expensive. A better method is to set_index on the merging columns and use a join on a left index instead
 
-```
+```python
 # MERGING DATAFRAMES USING JOIN
 
 # another way to select indices based on the index of a diff column
 # merged_df = clusters_df.loc[uniq_mgyp_id.index] 
 
 merged_df = uniq_mgyp_id.join(clusters_df,how='left')
-
 merged_df = client.persist(merged_df)
 
 print("xxxx 3... joining dataframes done")
@@ -248,11 +236,10 @@ print("xxxx 3... joining dataframes done")
 
 deleting unused dataframes from memory speeds up the compute a lot by freeing up memory
 
-```
+```python
 # CLEAN UP DATAFRAMES FROM MEMORY AND REPARTITION
 
 del uniq_mgyp_id
-
 del clusters_df
 
 print("xxxx 3.5... deleted prior dfs from memory")
@@ -260,9 +247,7 @@ print("xxxx 3.5... deleted prior dfs from memory")
 #print(merged_df.head(n=10), len(merged_df))
 
 # repartition this smaller dataframe
-
 merged_df = merged_df.repartition(npartitions=10).reset_index()
-
 merged_df = client.persist(merged_df)
 
 print("xxxx 4... merged_df repartition to 10 done")
@@ -272,7 +257,7 @@ write out this intermediate result to parquet
 
 this is by-far the most time intensive step
 
-```
+```python
 merged_df.to_parquet('uniq_cluster_seqs_2.parquet')
 ```
 
@@ -282,18 +267,16 @@ Could delete the merged_df now and read in pandas dataframe here since the data 
  
 `# merged_df = pd.read_parquet('uniq_cluster_seqs.parquet')`
 
-```
+```python
 # CONTINUE OPERATIONS ON A SMALLER DATAFRAME
 
 merged_df['cluster_seq'] = merged_df['cluster_seq'].str.split(";")
-
 merged_df = client.persist(merged_df)
 
 print("xxxx 4.5 ... split seqids by ;")
 
 # explode rows - 1 row per sequence in cluster
 merged_df = merged_df.explode('cluster_seq').reset_index(drop=True) #single column into multiple rows
-
 merged_df = client.persist(merged_df)
 
 print("xxxx 5... dataframe exploded")
@@ -302,9 +285,7 @@ print(merged_df.head(n=10), len(merged_df))
 
 
 # reparition and write to tsv
-
 merged_df = merged_df.repartition(npartitions=1)
-
 merged_df = client.persist(merged_df)
 
 print("xxxx 6... merged_df repartitioned to 1")
