@@ -57,7 +57,7 @@ def process_file(filename):
 	with open # file passed to function as f_handle and output as out:
 		for line in f_handle:
 			if line startswith ">":
-				# split line on whitespace
+    			# split line on whitespace
 				# get first element
 				# check if first element is in seqids_dict
 				# get line and next line
@@ -72,7 +72,6 @@ if __name__ == '__main__':
 
 
 results.compute(scheduler='multiprocessing')
-
 ```
 
 Actual code:
