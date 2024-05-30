@@ -349,6 +349,14 @@ sed '/k141_57368\b\|k141_88513\b/,+1 d' file.fa
 
 ### Other File Utilities
 
+#### perl
+
+To replace newline+tab with just a tab
+
+```perl
+ perl -0777pe 's/\n\t/\t/g' xaa_corrected.tsv > temp.tsv
+```
+
 #### Concatenate
 
 To join files by rows. E.g. concatenate a bunch of fastas into 1 giant fasta
