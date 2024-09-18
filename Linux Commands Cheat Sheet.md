@@ -329,6 +329,9 @@ sed 's/\(.*\)_/\1xx/'
 #print lines between two patterns
 sed -n '/>pattern1/,/>pattern2/p' file.fasta
 
+# print lines between two patterns, excluding the last pattern
+sed -n '/>contig_xx/,/>/' contigs.fasta | head -n -1
+
 # sed if line starts with ">VC"
 sed '/^>VC/s/search_string/replace_string/'
 
