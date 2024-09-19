@@ -109,6 +109,9 @@ $ find ./random -name "pattern*.fa" -type f printf "%p\n"
 
 # find and copy all files to new location
 find ./ -iname "slurm*.sh" -exec cp {} ./scripts/ \;
+
+# find files listed in a txt file and move them to another directory
+while IFS= read -r f; do echo "$f"; mv "$f".fa ./good_bins ;done < good_bins.list
 ```
 
 #### File movement
