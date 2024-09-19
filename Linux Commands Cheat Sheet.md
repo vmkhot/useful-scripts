@@ -348,6 +348,9 @@ sed '/k141_57368\b/,+1 d' file.fa
 sed -e '/k141_57368\b/{N;d;}' file.fa
 #multiple
 sed '/k141_57368\b\|k141_88513\b/,+1 d' file.fa
+
+# add filenames to fasta headers
+for f in *.fa; do sed -i "s/^>/>${f}_/" "$f"; done
 ```
 
 ### Other File Utilities
