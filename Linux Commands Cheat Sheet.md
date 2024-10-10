@@ -557,6 +557,11 @@ done
 
 Slightly less useful while loop to loop over the contents of a file
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~sh
+```bash
+
 while IFS= read -r line; do echo "$line"; done < file.txt
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+while IFS= read -r line; do echo "$line"; find ./ -iname ${line}_MSA* -exec mv {} ./files_to_redo \; ; done < files_to_redo.txt
+
+```
+
