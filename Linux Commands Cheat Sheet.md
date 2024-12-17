@@ -144,6 +144,25 @@ To split large directory into subdirectories. Change `300` to wanted number
 i=0; for f in *; do d=dir_$(printf %03d $((i/300+1))); mkdir -p $d; mv "$f" $d; let i++; done
 ```
 
+Split large directory into subdirectories based on file size
+
+```bash
+for i in *.ale; do
+  size=$(stat --printf="%s" "$i")
+  if [ $size -lt 10000000 ]; then
+      mv "$i" ale_lt_10MB/
+  elif [ $size -lt 50000000 ]; then
+      mv "$i" ale_10_50MB/
+  elif [ $size -lt 100000000 ]; then
+      mv "$i" ale_50_100MB/
+  elif [ $size -lt 500000000 ]; then
+      mv "$i" ale_100_500MB/
+  else
+      mv "$i" ale_mt_500MB/
+  fi
+done
+```
+
 ##### Remove
 
 !!**<u>STOP</u>**!! Make sure you are absolutely sure about what you are deleting. Linux does not have a "recycle bin". Deleted files and directories are gone FOREVER. 
