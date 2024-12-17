@@ -162,6 +162,11 @@ for i in *.ale; do
   fi
 done
 ```
+To count the number of files in the directories in your CWD
+
+```bash
+find . -type f | cut -d/ -f2 | sort | uniq -c
+```
 
 ##### Remove
 
